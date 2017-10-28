@@ -2,32 +2,50 @@
 import tweepy
 import time
 import json
+import random
+import requests as req
+import datetime
 
 # Twitter API Keys
-consumer_key = "Ed4RNulN1lp7AbOooHa9STCoU"
-consumer_secret = "P7cUJlmJZq0VaCY0Jg7COliwQqzK0qYEyUF9Y0idx4ujb3ZlW5"
-access_token = "839621358724198402-dzdOsx2WWHrSuBwyNUiqSEnTivHozAZ"
-access_token_secret = "dCZ80uNRbFDjxdU2EckmNiSckdoATach6Q8zb7YYYE5ER"
+consumer_key = "Iu8N9mG9WPTmpIhas1SjZ4l1d"
+consumer_secret = "Rd7W3Hzmb9JYmQ5bbCE5M2WAXmNjcZ2wmLU3jdmbHh1GddhA7J"
+access_token = "922955828709249024-TjTlUfAmFVK4A4gn5EndOF17W5EtfwG"
+access_token_secret = "NaIb3GVCCcBHp3r9neJENE8jKtLkasTZYyQFTfwvB6ypr"
 
-# Target Term
-target_term = "@Nationals"
+# Weather API
+api_key = "25bc90a1196e6f153eece0bc0b0fc9eb"
 
-# Twitter Credentials
-auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
-# Search for all tweets
-public_tweets = api.search(target_term, count=5, result_type="recent")
+# Create a function that gets the weather in London and Tweets it
+def WeatherTweet():
 
-# Loop through all public_tweets
-for tweet in public_tweets["statuses"]:
+    # Construct a Query URL for the OpenWeatherMap
+    url = "http://api.openweathermap.org/data/2.5/weather?"
+    city = "London"
+    units = "imperial"
+    query_url = url + "appid=" + api_key + "&q=" + city + "&units=" + units
 
-    # Get ID and Author of most recent tweet directed to me
-    tweet_id = tweet["id"]
-    tweet_author = tweet["user"]["screen_name"]
-    tweet_text = tweet["text"]
+    # Perform the API call to get the weather
+    weather_response = req.get(query_url)
+    weather_json = weather_response.json()
+    print(weather_json)
 
-    # Print Tweet Text and Tweet Author
-    print(tweet_text)
-    print(tweet_author)
+    # Twitter credentials
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
+
+    # Tweet the weather
+    api.update_status(
+        "London Weather as of %s: %s F" %
+        (datetime.datetime.now().strftime("%I:%M %p"),
+         weather_json["main"]["temp"]))
+
+    # Print success message
+    print("Tweeted successfully, sir!")
+
+
+# Set timer to run every 1 hour
+while(True):
+    WeatherTweet()
+    time.sleep(3600)
